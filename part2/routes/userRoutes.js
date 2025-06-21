@@ -62,21 +62,28 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/mydogs', async (req, res) => {
-  if (!req.session.user || req.session.user.role !== 'owner') {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  const ownerId = req.session.user.user_id; // Make sure to use correct ID field
+  const userId = req.session.user.user_id;
   try {
-    const [dogs] = await db.query(
-      'SELECT dog_id, name, size FROM Dogs WHERE owner_id = ?',
-      [ownerId]
-    );
-    res.json(dogs);
+    const [rows] = await db.query(`
+      SELECT 
+        d.dog_id,
+        u.username AS owner_id,
+        d.name,
+        d.size
+      FROM 
+        Dogs d
+      JOIN 
+        Users u ON d.owner_id = u.user_id
+      WHERE 
+        d.owner_id = ?
+    `, [userId]);
+    res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: 'Database error' });
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch dogs' });
   }
 });
+
 
 
 module.exports = router;
