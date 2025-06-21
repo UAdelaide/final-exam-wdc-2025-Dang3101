@@ -11,11 +11,9 @@
   <div id="app" class="container py-4">
     <h1 class="mb-4 text-success">Walker Dashboard</h1>
 
-    <!-- Alert messages -->
     <div v-if="message" class="alert alert-info">{{ message }}</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-    <!-- Walk requests list -->
     <div v-if="walks.length > 0" class="row">
       <div class="col-md-6 mb-4" v-for="walk in walks" :key="walk.request_id">
         <div class="card">
@@ -27,13 +25,15 @@
               <strong>Location:</strong> {{ walk.location }}<br>
               <strong>Owner:</strong> {{ walk.owner_name }}
             </p>
-            <button type=button class="btn btn-outline-success" @click="applyToWalk(walk.request_id)">Apply</button>
+            <button type="button" class="btn btn-outline-success" @click="applyToWalk(walk.request_id)">Apply</button>
           </div>
         </div>
       </div>
     </div>
     <p v-else>No available walk requests at the moment.</p>
   </div>
+
+  <button id="logoutBtn" class="btn btn-danger mt-4">Logout</button>
 
   <script>
     const { createApp, ref, onMounted } = Vue;
@@ -88,9 +88,26 @@
     }).mount('#app');
   </script>
 
-  <button id="logoutBtn" class="btn btn-danger">Logout</button>
+<script>     
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+          try {
+            const res = await fetch('/api/users/logout', { method: 'POST' });
+            if (res.ok) {
+              window.location.href = '/index.html';
+            } else {
+              console.error('Logout failed with status:', res.status);
+            }
+          } catch (err) {
+            console.error('Logout failed', err);
+          }
+        });
+      }
+    });
+</script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/page.js"></script>
 </body>
 </html>
