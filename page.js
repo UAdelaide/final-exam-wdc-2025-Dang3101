@@ -46,8 +46,9 @@ function createPost(){
     // Define function to run on response
     xmlhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            alert("Welcome " + this.responseText);
-            location.reload(); // optional
+            // Update the page on success
+            loadPosts();
+            showMain();
         }
     };
 
@@ -173,67 +174,40 @@ function downvote(index) {
 }
 
 
-function login(event) {
-  event.preventDefault(); // Prevent page from reloading
+function login(){
 
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+    let user = {
+        user: document.getElementById('username').value,
+        pass: document.getElementById('password').value
+    };
 
-  const user = {
-    username: username,
-    password: password
-  };
+    // Create AJAX Request
+    var xmlhttp = new XMLHttpRequest();
 
-  fetch('/api/users/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(user)
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error("Login failed");
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.success && data.user && data.user.role) {
-        const role = data.user.role.toLowerCase();
-
-        if (role === 'owner') {
-          window.location.href = '/owner-dashboard.html';
-        } else if (role === 'walker') {
-          window.location.href = '/walker-dashboard.html';
-        } else {
-          alert('Unknown role: ' + role);
+    // Define function to run on response
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            alert("Welcome "+this.responseText);
+        } else if (this.readyState == 4 && this.status >= 400) {
+            alert("Login failed");
         }
-      } else {
-        alert(data.message || 'Invalid login');
-      }
-    })
-    .catch(error => {
-      alert('Error: ' + error.message);
-    });
+    };
+
+    // Open connection to server & send the post data using a POST request
+    // We will cover POST requests in more detail in week 8
+    xmlhttp.open("POST", "/users/login", true);
+    xmlhttp.setRequestHeader("Content-type", "application/json");
+    xmlhttp.send(JSON.stringify(user));
+
 }
 
-document.getElementById('loginForm').addEventListener('submit', login);
+function logout(){
 
+    // Create AJAX Request
+    var xmlhttp = new XMLHttpRequest();
 
-// Logout function
-document.addEventListener('DOMContentLoaded', () => {
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        await fetch('/api/users/logout', { method: 'POST' });
-        window.location.href = '/index.html';
-      } catch (err) {
-        console.error('Logout failed', err);
-      }
-    });
-  }
-});
+    // Open connection to server & send the post data using a POST request
+    xmlhttp.open("POST", "/users/logout", true);
+    xmlhttp.send();
 
-
-
-
-
+}

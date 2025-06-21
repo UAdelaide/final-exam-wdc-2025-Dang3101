@@ -35,24 +35,30 @@ router.get('/me', (req, res) => {
   res.json(req.session.user);
 });
 
-// POST login (dummy version)
+//login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
+  const { username, password } = req.body;
   try {
-    const [rows] = await db.query(`
-      SELECT user_id, username, role FROM Users
-      WHERE email = ? AND password_hash = ?
-    `, [email, password]);
-
-    if (rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    const [rows] = await db.execute('SELECT * FROM users WHERE username = ? AND password_hash = ?', [username, password]);
+    if (rows.length === 1) {
+      const user = rows[0];
+      res.json({ success: true, role: user.role });
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
-
-    res.json({ message: 'Login successful', user: rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+// Logout 
+router.post('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid'); // Default session cookie name in Express
+    res.sendStatus(200); // Success
+  });
+});
+
 
 module.exports = router;
