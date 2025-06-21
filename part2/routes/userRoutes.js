@@ -42,6 +42,7 @@ router.post('/login', async (req, res) => {
     const [rows] = await db.execute('SELECT * FROM users WHERE username = ? AND password_hash = ?', [username, password]);
     if (rows.length === 1) {
       const user = rows[0];
+      req.session.user = user; // ✅ Store user in session
       res.json({ success: true, role: user.role });
     } else {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -58,6 +59,23 @@ router.post('/logout', (req, res) => {
     res.clearCookie('connect.sid'); // Default session cookie name in Express
     res.sendStatus(200); // Success
   });
+});
+
+router.get('/mydogs', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const ownerId = req.session.user.user_id; // Make sure to use correct ID field
+  try {
+    const [dogs] = await db.query(
+      'SELECT dog_id, name, size FROM Dogs WHERE owner_id = ?',
+      [ownerId]
+    );
+    res.json(dogs);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 

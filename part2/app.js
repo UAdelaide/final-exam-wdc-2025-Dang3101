@@ -4,10 +4,12 @@ require('dotenv').config();
 const session = require('express-session');
 
 const app = express();
-const userRoutes = require('./routes/userRoutes');
-const db = require('./models/db'); // Ensures DB connection is tested
 
-// Middleware
+// ROUTES
+const userRoutes = require('./routes/userRoutes');
+const walkRoutes = require('./routes/walkRoutes');
+
+// MIDDLEWARE
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
@@ -15,15 +17,17 @@ app.use(session({
   secret: 'Bill241!',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } 
+  cookie: { secure: false }
 }));
-// Routes
-app.use('/api/users', userRoutes);
 
-// Server start
+// ROUTE MOUNTING
+app.use('/api/users', userRoutes);
+app.use('/api/walks', walkRoutes); 
+
+// SERVER START
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
-module.exports = app;
+module.exports = app; 
